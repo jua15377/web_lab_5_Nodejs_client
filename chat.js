@@ -1,10 +1,14 @@
-const io = require("socket.io-client");
+// for sockets
+const socket = io.connect('http://localhost:3010')
+
+//old variables
 var oldMsjArray = []
 var newMsjArray = []
 const ulMsj = document.querySelector(".messages")
 const impNick = document.querySelector(".nickImput")
 const impid = document.querySelector(".idImput")
 const imptext = document.querySelector(".msjImput")
+const msjArea = document.querySelector(".showmessages")
 const btnsend = document.querySelector("#btnSend").addEventListener("click", function(){
   sentMsj(impid.value,impNick.value,imptext.value)
 })
@@ -12,11 +16,12 @@ imptext.addEventListener("keypress", function(e){
   var keyCode = e.keyCode;
   if(keyCode == 13){
       console.log("enter");
-      sentMsj(impid.value,impNick.value,imptext.value)
+      //sentMsj(impid.value,impNick.value,imptext.value)
+      send_by_socket()
   }
 })
 
-const msjArea = document.querySelector(".showmessages")
+
 
 const url = 'http://34.210.35.174:7000/'
 
@@ -100,7 +105,34 @@ function getMsj(){
   }
 
 
-  setInterval(function() {
-    // method to be executed;
-    getMsj()
-  }, 1500);
+  // setInterval(function() {
+  //   // method to be executed;
+  //   getMsj()
+  // }, 1500);
+
+  
+  function recive_socket_msj(onMessageReceived) {
+    socket.on('message', onMessageReceived)
+    console.log(onMessageReceived)
+  }
+  
+  function unregisterHandler() {
+    socket.off('message')
+  }
+  
+  socket.on('error', function (err) {
+    console.log('received socket error:')
+    console.log(err)
+  })
+  
+  function register(name, cb) {
+    socket.emit('register', name, cb)
+  }
+  
+
+  
+
+  function send_by_socket(chatroomNam) {
+    socket.emit('send_message',"test")
+  }
+  
