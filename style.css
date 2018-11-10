@@ -1,0 +1,67 @@
+body{
+  background: rgb(116, 148, 196);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Helvetica;
+}
+
+.completechat{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.showmessages{
+    display: flex;
+    width: 900px;
+    height: 500px;
+    background: rgb(219, 219, 219);
+    border-style: solid;
+    border-color: rgb(116, 148, 196);;
+    border-width: 12px;
+    border-radius: 20px 20px;
+    overflow:scroll;
+  }
+  
+.personalInfo{
+  width: 900px;
+  height: 100px;
+  background: rgb(219, 219, 219);
+  border-style: solid;
+  border-color: rgb(116, 148, 196);;
+  border-width: 12px;
+  border-radius: 20px 20px;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  }
+
+#nameAndId{
+  display: flex;
+  font-weight: bold;
+}
+.areaDeEnvio{
+  display: flex;
+  justify-content: center;
+  width: 900px;
+  height: 25px;
+  background: rgb(219, 219, 219);
+  border-style: solid;
+  border-color: rgb(116, 148, 196);;
+  border-width: 12px;
+  border-radius: 20px 20px;
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
+
+li{
+  background: white;
+  border-style: solid;
+  border-color: gray;
+  border-width: 5%;
+  padding: 5px;
+  border-radius: 20px 20px;
+}
+.msjImput{
+  width: 500px;
+}
