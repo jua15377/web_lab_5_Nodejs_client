@@ -1,6 +1,5 @@
 // for sockets
-const socket = io.connect('http://localhost:3010')
-
+const socket = io.connect('http://localhost:3011')
 //old variables
 var oldMsjArray = []
 var newMsjArray = []
@@ -16,123 +15,114 @@ imptext.addEventListener("keypress", function(e){
   var keyCode = e.keyCode;
   if(keyCode == 13){
       console.log("enter");
-      //sentMsj(impid.value,impNick.value,imptext.value)
-      send_by_socket()
+      sentMsj(impid.value,impNick.value,imptext.value)
   }
 })
+// tomado de https://gist.github.com/pinceladasdaweb/6662290 
+var Youtube = (function () {
+  'use strict';
+  var video, results;
+  var getThumb = function (url, size) {
+      if (url === null) {
+          return '';
+      }
+      size    = (size === null) ? 'big' : size;
+      results = url.match('[\\?&]v=([^&#]*)');
+      video   = (results === null) ? url : results[1];
+      if (size === 'small') {
+          return 'http://img.youtube.com/vi/' + video + '/2.jpg';
+      }
+      return 'http://img.youtube.com/vi/' + video + '/0.jpg';
+  };
+  return {
+      thumb: getThumb
+  };
+}());
+
+function addToMsjListDisplay(identificador, textToAdd, theid){
+  var li = document.createElement("li");
+  if (theid === impid.value){
+    li.className = "local_message"
+  }
+
+  li.appendChild(identificador)
+  li.appendChild(document.createElement("br"))
+  if (textToAdd.endsWith(".jpeg")||textToAdd.endsWith(".jpg")||textToAdd.endsWith(".png")||textToAdd.endsWith(".gif")){
+    var img = document.createElement("img")
+    img.src = textToAdd
+    li.appendChild(img)
+  }
+  else{
+    li.appendChild(document.createTextNode(textToAdd))
+  }
+  
+  ulMsj.appendChild(li)
+}
+
+function formatDisplayName(user, id){
+  const div = document.createElement("div")
+  div.setAttribute("id", "nameAndId") 
+  const text = user + " - " + id
+  div.appendChild(document.createTextNode(text))
+  return div
+}
+
+function sentMsj(st_id, nick, text){
+
+  if (st_id === "" || nick==="") {
+    alert('Please enter the nickname and id');
+    return;
+  }
+
+  // No message to send
+  if (text === "") {
+    alert('You must write a message');
+    return;
+  }
+  // max 140 character
+  if (text.length>140) {
+    alert('The message have to be shorter than 140 characters');
+    return;
+  }
+  send_by_socket(st_id, nick, text)
+  //esto se debe seguir haciendo...
+  imptext.value = ""
+  msjArea.scrollTop = msjArea.scrollHeight;
+
+}
 
 
 
-const url = 'http://34.210.35.174:7000/'
-
-function getMsj(){
-  fetch(url)
-  .then(function(response) {
-    var result = response.json()
-    return result
+// sends data to sever by a socket
+  function send_by_socket(st_id, nick, text) {
+    socket.emit('send_message',st_id, nick, text)
+  }
+// data from the server
+function new_msj() {
+  socket.on('new_message', function(onMessageReceived){
+    console.log("new message!")
+    const div = formatDisplayName(onMessageReceived.nick, onMessageReceived.student_id)
+    addToMsjListDisplay(div, onMessageReceived.text, onMessageReceived.student_id)
+    msjArea.scrollTop = msjArea.scrollHeight
   })
-  .then(function(myJson) {
-      myJson.forEach(function(element) {
+}
+
+//historical messages
+function first_conn() {
+  console.log("getting new messages")
+  socket.on('first_conn', function(onMessageReceived){
+    onMessageReceived.forEach(function(element){
       const div = formatDisplayName(element.nick, element.student_id)
-      addToMsjListDisplay(div, element.text)
-      })
-      msjArea.scrollTop = msjArea.scrollHeight;
+      addToMsjListDisplay(div, element.text, element.student_id)
+    })
+    msjArea.scrollTop = msjArea.scrollHeight
   })
 }
 
 
-  function addToMsjListDisplay(identificador, textToAdd){
-    var li = document.createElement("li");
-    li.appendChild(identificador)
-    li.appendChild(document.createElement("br"))
-    if (textToAdd.endsWith(".jpeg")||textToAdd.endsWith(".jpg")||textToAdd.endsWith(".png")||textToAdd.endsWith(".gif")){
-      var img = document.createElement("img")
-      img.src = textToAdd
-      li.appendChild(img)
-    }
-    else{
-      li.appendChild(document.createTextNode(textToAdd))
-    }
-    
-    ulMsj.appendChild(li)
-  }
-
-  function formatDisplayName(user, id){
-    const div = document.createElement("div")
-    div.setAttribute("id", "nameAndId") 
-    const text = user + " - " + id
-    div.appendChild(document.createTextNode(text))
-    return div
-  }
-
-  function sentMsj(st_id, nick, text){
-
-    console.log(st_id)
-    console.log(nick)
-    console.log(text)
-
-    const data = new FormData();
-    if (st_id === "" || nick==="") {
-			alert('Please enter the nickname and id');
-			return;
-		}
-
-		// No message to send
-		if (text === "") {
-			alert('You must write a message');
-			return;
-    }
-    // max 140 character
-    if (text.length>140) {
-			alert('The message have to be shorter than 140 characters');
-			return;
-    }
-    data.append('student_id', st_id)
-    data.append('text', text)
-    data.append('nick', nick)
-    const otherParam={
-      method:"POST",
-      body: data
-    }
-    fetch(url,otherParam).then(function(){
-      const div = formatDisplayName(nick, st_id)
-      addToMsjListDisplay(div, text)
-      imptext.value = ""
-      msjArea.scrollTop = msjArea.scrollHeight;
-    }).catch(function(){
-        aleer("Error Sending the message")
-    })
-  }
-
-
-  // setInterval(function() {
-  //   // method to be executed;
-  //   getMsj()
-  // }, 1500);
-
-  
-  function recive_socket_msj(onMessageReceived) {
-    socket.on('message', onMessageReceived)
-    console.log(onMessageReceived)
-  }
-  
-  function unregisterHandler() {
-    socket.off('message')
-  }
-  
-  socket.on('error', function (err) {
-    console.log('received socket error:')
-    console.log(err)
-  })
-  
-  function register(name, cb) {
-    socket.emit('register', name, cb)
-  }
-  
-
-  
-
-  function send_by_socket(chatroomNam) {
-    socket.emit('send_message',"test")
-  }
-  
+var local_nick = prompt("Please enter your nick", "Jonnathan");
+var local_id = prompt("Please enter your student ID", "15377");
+impid.value= local_id
+impNick.value = local_nick
+first_conn()
+new_msj()
