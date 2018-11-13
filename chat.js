@@ -1,5 +1,5 @@
 // for sockets
-const socket = io.connect('http://localhost:3011')
+const socket = io.connect('http://localhost:3010')
 //old variables
 var oldMsjArray = []
 var newMsjArray = []
@@ -41,8 +41,12 @@ var Youtube = (function () {
 
 function addToMsjListDisplay(identificador, textToAdd, theid){
   var li = document.createElement("li");
+  var old_text =textToAdd
   if (theid === impid.value){
     li.className = "local_message"
+  }
+  if(textToAdd.includes("www.youtube.com")){
+    textToAdd = Youtube.thumb(textToAdd, 'big');
   }
 
   li.appendChild(identificador)
@@ -51,6 +55,8 @@ function addToMsjListDisplay(identificador, textToAdd, theid){
     var img = document.createElement("img")
     img.src = textToAdd
     li.appendChild(img)
+    li.appendChild(document.createElement("br"))
+    li.appendChild(document.createTextNode(old_text))
   }
   else{
     li.appendChild(document.createTextNode(textToAdd))
@@ -94,9 +100,23 @@ function sentMsj(st_id, nick, text){
 
 
 // sends data to sever by a socket
-  function send_by_socket(st_id, nick, text) {
-    socket.emit('send_message',st_id, nick, text)
-  }
+function send_by_socket(st_id, nick, text) {
+  socket.emit('send_message',st_id, nick, text)
+  console.log("Message send!")
+}
+
+//historical messages
+function first_conn() {
+  console.log("getting past messages...")
+  socket.on('first_conn', function(onMessageReceived){
+    onMessageReceived.forEach(function(element){
+      const div = formatDisplayName(element.nick, element.student_id)
+      addToMsjListDisplay(div, element.text, element.student_id)
+    })
+    msjArea.scrollTop = msjArea.scrollHeight
+  })
+}
+
 // data from the server
 function new_msj() {
   socket.on('new_message', function(onMessageReceived){
@@ -107,22 +127,10 @@ function new_msj() {
   })
 }
 
-//historical messages
-function first_conn() {
-  console.log("getting new messages")
-  socket.on('first_conn', function(onMessageReceived){
-    onMessageReceived.forEach(function(element){
-      const div = formatDisplayName(element.nick, element.student_id)
-      addToMsjListDisplay(div, element.text, element.student_id)
-    })
-    msjArea.scrollTop = msjArea.scrollHeight
-  })
-}
 
-
+first_conn()
 var local_nick = prompt("Please enter your nick", "Jonnathan");
 var local_id = prompt("Please enter your student ID", "15377");
 impid.value= local_id
 impNick.value = local_nick
-first_conn()
 new_msj()
